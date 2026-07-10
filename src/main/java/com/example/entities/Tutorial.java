@@ -4,6 +4,8 @@ import java.io.Serializable;
 import java.util.HashSet;
 import java.util.Set;
 
+import org.springframework.data.jpa.repository.EntityGraph;
+
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -30,6 +32,13 @@ import lombok.ToString;
 @ToString
 @Builder
 public class Tutorial implements Serializable {
+/* 
+de parte de Jerónimo:
+    @EntityGraph(attributePaths = {"tags"}) //Spring Data JPA genera una consulta con un JOIN para traer los tags evitando consulta N+1
+List<Tutorial> findTutorialsByTagsId(Long tagId); */
+
+
+
 
     private static final long serialVersionUID = 1L;
 
@@ -42,8 +51,8 @@ public class Tutorial implements Serializable {
 
     @Builder.Default // para evitar que lo inicialice
     @ManyToMany(fetch = FetchType.LAZY, cascade = { CascadeType.PERSIST, CascadeType.MERGE })
-    @JoinTable(name = "tutorial_tags", joinColumns = { @JoinColumn(name = "tutorial_id") }, inverseJoinColumns = {
-            @JoinColumn(name = "tag_id") })
+    @JoinTable(name = "tutorials_tags", joinColumns = { @JoinColumn(name = "tutorial_id") }, inverseJoinColumns = {
+            @JoinColumn(name = "tag_id") }) // esta línea es redundante
     private Set<Tag> tags = new HashSet<>();
 
 
