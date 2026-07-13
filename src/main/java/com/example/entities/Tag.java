@@ -44,3 +44,14 @@ public class Tag implements Serializable {
     @JsonIgnore
     private final Set<Tutorial> tutorials = new HashSet<>();
 }
+
+/**
+ * 
+ * DTO
+
+https://www.google.es/search?q=dto+java+que+es&oq=dto+java+&aqs=chrome.2.69i57j0l5.18657j0j8&sourceid=chrome&ie=UTF-8
+
+Con hibernate y JPA
+
+https://vladmihalcea.com/the-best-way-to-map-a-projection-query-to-a-dto-with-jpa-and-hibernate/
+ */
