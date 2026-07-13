@@ -30,13 +30,13 @@ import lombok.ToString;
 @ToString
 @Builder
 public class Tutorial implements Serializable {
-/* 
-de parte de Jerónimo:
-    @EntityGraph(attributePaths = {"tags"}) //Spring Data JPA genera una consulta con un JOIN para traer los tags evitando consulta N+1
-List<Tutorial> findTutorialsByTagsId(Long tagId); */
-
-
-
+    /*
+     * de parte de Jerónimo:
+     * 
+     * @EntityGraph(attributePaths = {"tags"}) //Spring Data JPA genera una consulta
+     * con un JOIN para traer los tags evitando consulta N+1
+     * List<Tutorial> findTutorialsByTagsId(Long tagId);
+     */
 
     private static final long serialVersionUID = 1L;
 
@@ -47,16 +47,23 @@ List<Tutorial> findTutorialsByTagsId(Long tagId); */
     private String description;
     private boolean published;
 
-    @Builder.Default // para evitar que lo inicialice
+    //@Builder.Default // para evitar que lo inicialice
     @ManyToMany(fetch = FetchType.LAZY, cascade = { CascadeType.PERSIST, CascadeType.MERGE })
     @JoinTable(name = "tutorials_tags", joinColumns = { @JoinColumn(name = "tutorial_id") }, inverseJoinColumns = {
             @JoinColumn(name = "tag_id") }) // esta línea es redundante
-    private Set<Tag> tags = new HashSet<>();
+    private Set<Tag> tags; // aquí he quitado = new HashSet<>();
 
 
-
-    
     public void addTag(Tag tag) {
+
+        if (this.tags == null) {
+            this.tags = new HashSet<>();
+        }
+
+        if (tag.getTutorials() == null) {
+            tag.setTutorials(new HashSet<>());
+        }
+
         this.tags.add(tag);
         tag.getTutorials().add(this);
     }
