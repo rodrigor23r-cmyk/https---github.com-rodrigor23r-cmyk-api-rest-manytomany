@@ -51,18 +51,19 @@ public class Tutorial implements Serializable {
     @ManyToMany(fetch = FetchType.LAZY, cascade = { CascadeType.PERSIST, CascadeType.MERGE })
     @JoinTable(name = "tutorials_tags", joinColumns = { @JoinColumn(name = "tutorial_id") }, inverseJoinColumns = {
             @JoinColumn(name = "tag_id") }) // esta línea es redundante
-    private Set<Tag> tags; // aquí he quitado = new HashSet<>();
+    private final Set<Tag> tags = new HashSet<>();
 
 
     public void addTag(Tag tag) {
 
-        if (this.tags == null) {
+/* no hace falta esto......................................
+         if (this.tags == null) {
             this.tags = new HashSet<>();
         }
 
         if (tag.getTutorials() == null) {
             tag.setTutorials(new HashSet<>());
-        }
+        } */
 
         this.tags.add(tag);
         tag.getTutorials().add(this);

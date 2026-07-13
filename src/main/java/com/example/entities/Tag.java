@@ -1,6 +1,7 @@
 package com.example.entities;
 
 import java.io.Serializable;
+import java.util.HashSet;
 import java.util.Set;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -41,5 +42,5 @@ public class Tag implements Serializable {
     //@Builder.Default
     @ManyToMany(fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST, CascadeType.MERGE}, mappedBy = "tags")
     @JsonIgnore
-    private Set<Tutorial> tutorials; // borré = new HashSet<>();
+    private final Set<Tutorial> tutorials = new HashSet<>();
 }
