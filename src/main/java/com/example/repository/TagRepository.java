@@ -8,6 +8,6 @@ import java.util.List;
 
 public interface TagRepository extends JpaRepository<Tag, Long> {
 
-    List<Tag> findByTutorialsId(Long tutorialId);
+    List<Tag> findTagsByTutorialsId(Long tutorialId);
 
 }
