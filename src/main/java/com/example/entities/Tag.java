@@ -54,4 +54,8 @@ https://www.google.es/search?q=dto+java+que+es&oq=dto+java+&aqs=chrome.2.69i57j0
 Con hibernate y JPA
 
 https://vladmihalcea.com/the-best-way-to-map-a-projection-query-to-a-dto-with-jpa-and-hibernate/
+
+
+https://www.youtube.com/watch?v=gBaCpsqsWfY
+
  */
