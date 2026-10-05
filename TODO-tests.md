@@ -10,6 +10,8 @@ set -a && source .env && set +a && ./mvnw test -Dtest=TutorialTest              
 set -a && source .env && set +a && ./mvnw test -Dtest=TutorialTest#testAddTag   # un método
 ```
 
+> ⚠️ Si aparece `Unresolved compilation problems` o Maven dice `Nothing to compile` después de cambiar código: la extensión Java de VS Code también compila en `target/` y a veces deja clases desactualizadas. Usa `./mvnw clean test`.
+
 Patrón de todos los tests (el mismo que en el proyecto de referencia): `// given` → `// when` → `// then`.
 
 ## ✅ Resultado final (2026-10-05): 80 tests en verde
@@ -259,6 +261,70 @@ Spring guarda en caché un contexto por cada combinación distinta de configurac
 - [x] `./mvnw test` completo → todo verde
 - [x] Revisar que ningún test tenga `try/catch` que se trague el error (ver más abajo)
 - [x] Commit
+
+---
+
+## Fase 7 · Errores con `ProblemDetail` (RFC 9457)
+
+Rama: `fase7-problem-detail`. En el código, cada cambio lleva un comentario que empieza por `F7`.
+
+**Objetivo**: todas las respuestas de error con el **mismo formato estándar** (`application/problem+json`), con el **código HTTP correcto** y **sin filtrar detalles internos**.
+
+```json
+{ "title": "Not Found", "status": 404,
+  "detail": "Not found Tutorial with id = 99", "instance": "/api/tutorials/99",
+  "timestamp": "2026-10-05T20:28:22Z" }
+```
+> `"type"` no aparece: Spring 7 lo omite cuando vale `about:blank`, que según el RFC 9457 es el valor que se asume si falta.
+
+Situación de partida (probada con curl el 2026-10-05):
+
+| Petición | Debería ser | Antes |
+|---|---|---|
+| `GET /api/tutorials/abc` (id no numérico) | 400 | 500 |
+| `GET /api/no-existe` | 404 | 500 |
+| `PATCH /api/tutorials/1` | 405 | 500 |
+| `POST` con JSON mal formado / sin cuerpo | 400 | 500 (y el mensaje mostraba la firma interna del método) |
+| `POST` con `Content-Type: text/plain` | 415 | 500 |
+| Login con contraseña incorrecta | 401 | 500 |
+| Sin token | 401 con cuerpo | 401 con el cuerpo vacío |
+| `POST /api/tutorials` con `{}` | 400 | 201 (tutorial con `title: null`) |
+| Login con email vacío | 400 en formato común | 400 con otro formato (`ValidationErrorResponse`) |
+| Registro con email o username repetido | 409 en formato común | 400 con otro formato (`MessageResponse`) |
+
+### 7.1 Tests primero (TDD)
+> ✅ Antes de implementar: **22 tests en rojo** (los 18 de `ManejoErroresControllerTest`, las 3 aserciones migradas y el test de servicio). Después: todos en verde.
+- [x] `controller/ManejoErroresControllerTest`: un test por cada fila de la tabla, más el formato del 403/404 y un 500 que no filtra detalles → ejecutarlo y **verlo en rojo**
+- [x] `TagServiceImplTest`: un tag nuevo sin nombre → `BadRequestException` y no se guarda nada
+- [x] Adaptar las 4 aserciones antiguas: `$.statusCode` → `$.status`, `$.message` → `$.detail`
+
+### 7.2 `ControllerExceptionHandler` hereda de `ResponseEntityExceptionHandler`
+- [x] La clase base ya convierte ~15 excepciones de Spring MVC en un `ProblemDetail` con su código (400, 404, 405, 415…)
+- [x] Sobrescribir `createResponseEntity` para añadir `timestamp` a **todas** las respuestas
+- [x] Mensajes más descriptivos para: id no numérico (`handleTypeMismatch`), cuerpo ilegible (`handleHttpMessageNotReadable`), ruta inexistente (`handleNoResourceFoundException`) y validación (`handleMethodArgumentNotValid`, con un mapa `errors` campo → mensaje)
+- [x] Manejadores propios: `ResourceNotFoundException` → 404, `BadRequestException` → 400, `AccessDeniedException` → 403, `AuthenticationException` → 401 ("Email o contraseña incorrectos")
+- [x] `Exception` → 500 con un mensaje **genérico**. El detalle real va al log, nunca a la respuesta
+- [x] Borrar `ErrorMessage`, que ya no se usa
+
+### 7.3 El 401 sin token (`AuthEntryPointJwt`)
+- [x] Ocurre en el **filtro de seguridad**, antes de llegar al controlador, así que `@RestControllerAdvice` no lo ve. Hay que escribir aquí el `ProblemDetail` en JSON
+
+### 7.4 Validación de la entrada
+- [x] `@NotBlank` en `Tutorial.title` y `Tag.name`
+- [x] `@Valid` en `POST`/`PUT /api/tutorials` y `PUT /api/tags/{id}`
+- [x] `POST /api/tutorials/{id}/tags` no puede llevar `@Valid`, porque un tag existente llega solo con `{"id": 1}`. Lo comprueba el servicio: tag nuevo sin nombre → `BadRequestException`
+- [x] `AuthController`: quitar el `BindingResult` manual (lo hace el manejador global) y responder 409 a los duplicados. Borrar `ValidationErrorResponse`, que ya no se usa
+
+### 7.5 Cierre
+- [x] `./mvnw test` completo → todo verde
+- [x] Probar con curl los casos de la tabla
+- [x] Commit en la rama `fase7-problem-detail`
+
+> ✅ **Resultado: 99 tests en verde** (80 anteriores + 18 de `ManejoErroresControllerTest` + 1 de `TagServiceImplTest`), comprobado con 3 órdenes de clases. Probados con curl los 14 casos de error y los caminos felices (crear tutorial, añadir tag nuevo y existente, borrar tag asignado): todo correcto.
+>
+> Archivos borrados: `exception/ErrorMessage.java` y `payload/response/ValidationErrorResponse.java` (ya no se usan).
+>
+> Cambios de comportamiento a tener en cuenta (p. ej. en Postman): el formato del JSON de error es otro (`status`/`detail` en vez de `statusCode`/`message`), y un registro con username o email repetido devuelve **409** (antes 400).
 
 ---
 

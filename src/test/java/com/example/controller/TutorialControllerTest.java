@@ -135,8 +135,9 @@ class TutorialControllerTest extends AbstractControllerTest {
 		mockMvc.perform(get("/api/tutorials/{id}", 99L)
 						.header("Authorization", adminToken))
 				.andExpect(status().isNotFound())
-				.andExpect(jsonPath("$.statusCode", is(404)))
-				.andExpect(jsonPath("$.message", is("Not found Tutorial with id = 99")));
+				// F7: formato ProblemDetail ($.statusCode -> $.status, $.message -> $.detail)
+				.andExpect(jsonPath("$.status", is(404)))
+				.andExpect(jsonPath("$.detail", is("Not found Tutorial with id = 99")));
 	}
 
 	@Test

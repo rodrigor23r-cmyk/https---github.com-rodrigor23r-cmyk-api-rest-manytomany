@@ -18,6 +18,8 @@ import org.springframework.web.bind.annotation.RestController;
 import com.example.entities.Tutorial;
 import com.example.service.TutorialService;
 
+import jakarta.validation.Valid;
+
 import lombok.RequiredArgsConstructor;
 
 @RestController
@@ -53,14 +55,16 @@ public class TutorialController {
 
     @PostMapping("/tutorials")
     @PreAuthorize ("hasRole('ADMIN')")
-    public ResponseEntity<Tutorial> createTutorial(@RequestBody Tutorial tutorial) {
+    // F7: @Valid aplica las anotaciones de validación de Tutorial (@NotBlank en title) -> 400 si fallan
+    public ResponseEntity<Tutorial> createTutorial(@Valid @RequestBody Tutorial tutorial) {
 
         return new ResponseEntity<>(tutorialService.create(tutorial), HttpStatus.CREATED);
     }
 
     @PutMapping("/tutorials/{id}")
     @PreAuthorize ("hasRole('ADMIN')")
-    public ResponseEntity<Tutorial> updateTutorial(@PathVariable("id") long id, @RequestBody Tutorial tutorial) {
+    // F7: @Valid, igual que en createTutorial
+    public ResponseEntity<Tutorial> updateTutorial(@PathVariable("id") long id, @Valid @RequestBody Tutorial tutorial) {
 
         return new ResponseEntity<>(tutorialService.update(id, tutorial), HttpStatus.OK);
     }

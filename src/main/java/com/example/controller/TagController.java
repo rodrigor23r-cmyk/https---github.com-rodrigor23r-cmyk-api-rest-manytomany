@@ -18,6 +18,8 @@ import com.example.entities.Tag;
 import com.example.entities.Tutorial;
 import com.example.service.TagService;
 
+import jakarta.validation.Valid;
+
 import lombok.RequiredArgsConstructor;
 
 @RestController
@@ -69,6 +71,8 @@ public class TagController {
 
     @PostMapping("/tutorials/{tutorialId}/tags")
     @PreAuthorize("hasRole('ADMIN')")
+    // F7: sin @Valid a propósito: un tag EXISTENTE llega solo con {"id": 1}, sin nombre.
+    // El nombre de un tag nuevo lo comprueba TagServiceImpl (BadRequestException -> 400).
     public ResponseEntity<Tag> addTag(@PathVariable long tutorialId, @RequestBody Tag tagRequest) {
 
         Tag tag = tagService.createTagWithTutorialId(tutorialId, tagRequest);
@@ -78,7 +82,8 @@ public class TagController {
 
     @PutMapping("/tags/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<Tag> updateTag(@PathVariable long id, @RequestBody Tag tagRequest) {
+    // F7: @Valid aplica @NotBlank de Tag.name -> 400 si el nombre está vacío
+    public ResponseEntity<Tag> updateTag(@PathVariable long id, @Valid @RequestBody Tag tagRequest) {
 
         Tag tag = tagService.updateTag(id, tagRequest);
 

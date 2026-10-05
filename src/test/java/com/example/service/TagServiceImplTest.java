@@ -21,6 +21,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.example.entities.Tag;
 import com.example.entities.Tutorial;
+import com.example.exception.BadRequestException;
 import com.example.exception.ResourceNotFoundException;
 import com.example.repository.TagRepository;
 import com.example.repository.TutorialRepository;
@@ -228,6 +229,24 @@ class TagServiceImplTest {
 				.hasMessage("Not found Tutorial with id = 99");
 
 		verifyNoInteractions(tagRepository);
+	}
+
+	@Test
+	@DisplayName("F7: añadir un tag NUEVO sin nombre: lanza BadRequestException y no guarda nada")
+	void testCreateTagNuevoSinNombre() {
+
+		// given: sin id (tag nuevo) y sin nombre
+		Tag request = Tag.builder().build();
+
+		given(tutorialRepository.findById(1L)).willReturn(Optional.of(tutorial1));
+
+		// when / then
+		assertThatThrownBy(() -> tagService.createTagWithTutorialId(1L, request))
+				.isInstanceOf(BadRequestException.class)
+				.hasMessage("El nombre es obligatorio para crear un tag nuevo");
+
+		assertThat(tutorial1.getTags()).isEmpty();
+		verify(tagRepository, never()).save(any());
 	}
 
 	// ================= Actualizar =================

@@ -8,6 +8,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.example.entities.Tag;
 import com.example.entities.Tutorial;
+import com.example.exception.BadRequestException;
 import com.example.exception.ResourceNotFoundException;
 import com.example.repository.TagRepository;
 import com.example.repository.TutorialRepository;
@@ -81,6 +82,11 @@ public class TagServiceImpl implements TagService {
         }
 
         // 2b. El JSON no trae id → tag nuevo: se asocia y se guarda
+        // F7: un tag nuevo necesita nombre (no se puede usar @Valid, ver TagController.addTag)
+        if (tagRequest.getName() == null || tagRequest.getName().isBlank()) {
+            throw new BadRequestException("El nombre es obligatorio para crear un tag nuevo");
+        }
+
         tutorial.addTag(tagRequest);
         return tagRepository.save(tagRequest);
 

@@ -109,7 +109,8 @@ class TagControllerTest extends AbstractControllerTest {
 		mockMvc.perform(get("/api/tags/{id}", 99L)
 						.header("Authorization", adminToken))
 				.andExpect(status().isNotFound())
-				.andExpect(jsonPath("$.message", is("Not found Tag with id = 99")));
+				// F7: formato ProblemDetail ($.message -> $.detail)
+				.andExpect(jsonPath("$.detail", is("Not found Tag with id = 99")));
 	}
 
 	@Test
@@ -138,7 +139,8 @@ class TagControllerTest extends AbstractControllerTest {
 		mockMvc.perform(get("/api/tutorials/{tutorialId}/tags", 99L)
 						.header("Authorization", adminToken))
 				.andExpect(status().isNotFound())
-				.andExpect(jsonPath("$.message", is("Not found Tutorial with id = 99")));
+				// F7: formato ProblemDetail ($.message -> $.detail)
+				.andExpect(jsonPath("$.detail", is("Not found Tutorial with id = 99")));
 	}
 
 	@Test
