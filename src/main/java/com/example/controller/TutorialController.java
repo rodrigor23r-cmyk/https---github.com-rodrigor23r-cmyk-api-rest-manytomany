@@ -1,6 +1,5 @@
 package com.example.controller;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.http.HttpStatus;
@@ -17,8 +16,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.example.entities.Tutorial;
-import com.example.exception.ResourceNotFoundException;
-import com.example.repository.TutorialRepository;
+import com.example.service.TutorialService;
 
 import lombok.RequiredArgsConstructor;
 
@@ -26,18 +24,18 @@ import lombok.RequiredArgsConstructor;
 @RequestMapping("/api")
 @RequiredArgsConstructor
 public class TutorialController {
-    private final TutorialRepository tutorialRepository;
+    private final TutorialService tutorialService;
 
     @GetMapping("/tutorials")
     @PreAuthorize ("hasRole('ADMIN') or hasRole('USER')")
     public ResponseEntity<List<Tutorial>> getAllTutorials(@RequestParam(required = false) String title) {
 
-        List<Tutorial> tutorials = new ArrayList<Tutorial>();
+        List<Tutorial> tutorials;
 
         if (title == null)
-            tutorialRepository.findAll().forEach(tutorials::add);
+            tutorials = tutorialService.findAll();
         else
-            tutorialRepository.findByTitleContaining(title).forEach(tutorials::add);
+            tutorials = tutorialService.findByTitleContaining(title);
 
         if (tutorials.isEmpty()) {
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);
@@ -49,45 +47,28 @@ public class TutorialController {
     @GetMapping("/tutorials/{id}")
     @PreAuthorize ("hasRole('ADMIN') or hasRole('USER')")
     public ResponseEntity<Tutorial> getTutorialById(@PathVariable("id") long id) {
-        Tutorial tutorial = tutorialRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Not found Tutorial with id = " + id));
 
-        return new ResponseEntity<>(tutorial, HttpStatus.OK);
+        return new ResponseEntity<>(tutorialService.findById(id), HttpStatus.OK);
     }
 
     @PostMapping("/tutorials")
     @PreAuthorize ("hasRole('ADMIN')")
     public ResponseEntity<Tutorial> createTutorial(@RequestBody Tutorial tutorial) {
 
-        Tutorial _tutorial = tutorialRepository
-                .save(
-                        Tutorial.builder()
-                                .title(tutorial.getTitle())
-                                .description(tutorial.getDescription())
-                                .published(true)
-                                .build());
-
-        return new ResponseEntity<>(_tutorial, HttpStatus.CREATED);
+        return new ResponseEntity<>(tutorialService.create(tutorial), HttpStatus.CREATED);
     }
 
     @PutMapping("/tutorials/{id}")
     @PreAuthorize ("hasRole('ADMIN')")
     public ResponseEntity<Tutorial> updateTutorial(@PathVariable("id") long id, @RequestBody Tutorial tutorial) {
 
-        Tutorial _tutorial = tutorialRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Not found Tutorial with id = " + id));
-
-        _tutorial.setTitle(tutorial.getTitle());
-        _tutorial.setDescription(tutorial.getDescription());
-        _tutorial.setPublished(tutorial.isPublished());
-
-        return new ResponseEntity<>(tutorialRepository.save(_tutorial), HttpStatus.OK);
+        return new ResponseEntity<>(tutorialService.update(id, tutorial), HttpStatus.OK);
     }
 
     @DeleteMapping("/tutorials/{id}")
     @PreAuthorize ("hasRole('ADMIN')")
     public ResponseEntity<HttpStatus> deleteTutorial(@PathVariable("id") long id) {
-        tutorialRepository.deleteById(id);
+        tutorialService.deleteById(id);
 
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
@@ -95,7 +76,7 @@ public class TutorialController {
     @DeleteMapping("/tutorials")
     @PreAuthorize ("hasRole('ADMIN')")
     public ResponseEntity<HttpStatus> deleteAllTutorials() {
-        tutorialRepository.deleteAll();
+        tutorialService.deleteAll();
 
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
@@ -103,7 +84,7 @@ public class TutorialController {
     @GetMapping("/tutorials/published")
     @PreAuthorize ("hasRole('ADMIN') or hasRole('USER')")
     public ResponseEntity<List<Tutorial>> findByPublished() {
-        List<Tutorial> tutorials = tutorialRepository.findByPublished(true);
+        List<Tutorial> tutorials = tutorialService.findByPublished(true);
 
         if (tutorials.isEmpty()) {
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);

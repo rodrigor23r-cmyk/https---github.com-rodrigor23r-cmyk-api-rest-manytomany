@@ -25,7 +25,7 @@ import lombok.ToString;
 @Entity
 @Table(name = "tags")
 @NoArgsConstructor
-@AllArgsConstructor
+@AllArgsConstructor(access = AccessLevel.PRIVATE) // solo lo usa @Builder; así Jackson usa el constructor vacío y el Set nunca es null
 @Getter
 @Setter
 @ToString
