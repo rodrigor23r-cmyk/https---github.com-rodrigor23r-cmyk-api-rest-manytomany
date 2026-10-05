@@ -5,6 +5,7 @@ import java.util.List;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -31,6 +32,7 @@ public class TagController {
     private final TagRepository tagRepository;
 
     @GetMapping("/tags")
+    @PreAuthorize ("hasRole('ADMIN') or hasRole('USER')")
     public ResponseEntity<List<Tag>> getAllTags() {
         List<Tag> tags = new ArrayList<Tag>();
 
@@ -44,6 +46,7 @@ public class TagController {
     }
 
     @GetMapping("/tutorials/{tutorialId}/tags")
+    @PreAuthorize ("hasRole('ADMIN') or hasRole('USER')")
     public ResponseEntity<List<Tag>> getAllTagsByTutorialId(@PathVariable Long tutorialId) {
         if (!tutorialRepository.existsById(tutorialId)) {
             throw new ResourceNotFoundException("Not found Tutorial with id = " + tutorialId);
@@ -55,6 +58,7 @@ public class TagController {
     }
 
     @GetMapping("/tags/{id}")
+    @PreAuthorize ("hasRole('ADMIN') or hasRole('USER')")
     public ResponseEntity<Tag> getTagsById(@PathVariable Long id) {
         Tag tag = tagRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Not found Tag with id = " + id));
@@ -63,6 +67,7 @@ public class TagController {
     }
 
     @GetMapping("/tags/{tagId}/tutorials")
+    @PreAuthorize ("hasRole('ADMIN') or hasRole('USER')")
     public ResponseEntity<List<Tutorial>> getAllTutorialsByTagId(@PathVariable Long tagId) {
         if (!tagRepository.existsById(tagId)) {
             throw new ResourceNotFoundException("Not found Tag with id = " + tagId);
@@ -73,6 +78,7 @@ public class TagController {
     }
 
     @PostMapping("/tutorials/{tutorialId}/tags")
+    @PreAuthorize ("hasRole('ADMIN')")
     public ResponseEntity<Tag> addTag(@PathVariable Long tutorialId, @RequestBody Tag tagRequest) {
 
         Tag tag = tutorialRepository.findById(tutorialId).map(tutorial -> {
@@ -98,6 +104,7 @@ public class TagController {
     }
 
     @PutMapping("/tags/{id}")
+    @PreAuthorize ("hasRole('ADMIN')")
     public ResponseEntity<Tag> updateTag(@PathVariable long id, @RequestBody Tag tagRequest) {
 
         Tag tag = tagRepository.findById(id)
@@ -109,6 +116,7 @@ public class TagController {
     }
 
     @DeleteMapping("/tutorials/{tutorialId}/tags/{tagId}")
+    @PreAuthorize ("hasRole('ADMIN')")
     public ResponseEntity<HttpStatus> deleteTagFromTutorial(@PathVariable Long tutorialId,
             @PathVariable Long tagId) {
 
@@ -122,6 +130,7 @@ public class TagController {
     }
 
     @DeleteMapping("/tags/{id}")
+    @PreAuthorize ("hasRole('ADMIN')")
     public ResponseEntity<HttpStatus> deleteTag(@PathVariable long id) {
         
         tagRepository.deleteById(id);

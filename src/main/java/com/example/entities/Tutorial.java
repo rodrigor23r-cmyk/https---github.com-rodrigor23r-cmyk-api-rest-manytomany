@@ -14,6 +14,7 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.Table;
+import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -47,23 +48,15 @@ public class Tutorial implements Serializable {
     private String description;
     private boolean published;
 
-    //@Builder.Default // para evitar que lo inicialice
+    @Builder.Default // para que el builder use el new HashSet<>() en vez de dejarlo a null
     @ManyToMany(fetch = FetchType.LAZY, cascade = { CascadeType.PERSIST, CascadeType.MERGE })
     @JoinTable(name = "tutorials_tags", joinColumns = { @JoinColumn(name = "tutorial_id") }, inverseJoinColumns = {
             @JoinColumn(name = "tag_id") }) // esta línea es redundante
-    private final Set<Tag> tags = new HashSet<>();
+    @Setter(AccessLevel.NONE) // el Set solo se modifica con addTag()/removeTag(), nunca se sustituye
+    private Set<Tag> tags = new HashSet<>();
 
 
     public void addTag(Tag tag) {
-
-/* no hace falta esto......................................
-         if (this.tags == null) {
-            this.tags = new HashSet<>();
-        }
-
-        if (tag.getTutorials() == null) {
-            tag.setTutorials(new HashSet<>());
-        } */
 
         this.tags.add(tag);
         tag.getTutorials().add(this);

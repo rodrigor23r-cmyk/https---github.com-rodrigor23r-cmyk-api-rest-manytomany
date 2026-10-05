@@ -14,6 +14,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.Table;
+import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -39,10 +40,12 @@ public class Tag implements Serializable {
     private long id;
     private String name;
 
-    //@Builder.Default
+    @Builder.Default
     @ManyToMany(fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST, CascadeType.MERGE}, mappedBy = "tags")
     @JsonIgnore
-    private final Set<Tutorial> tutorials = new HashSet<>();
+    @ToString.Exclude // Evita la recursión infinita al imprimir el objeto Tag
+    @Setter(AccessLevel.NONE) // el Set solo se modifica con Tutorial.addTag()/removeTag(), nunca se sustituye
+    private Set<Tutorial> tutorials = new HashSet<>();
 }
 
 /**
