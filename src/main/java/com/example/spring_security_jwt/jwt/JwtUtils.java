@@ -45,6 +45,7 @@ public class JwtUtils {
     }
 
     private Key key() {
+        // Decode the Base64-encoded secret key and create an HMAC SHA key for signing JWTs.
         return Keys.hmacShaKeyFor(Decoders.BASE64.decode(jwtSecret));
     }
 

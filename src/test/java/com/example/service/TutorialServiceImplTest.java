@@ -144,7 +144,7 @@ class TutorialServiceImplTest {
 	@Test
 	@DisplayName("Test para crear un tutorial: siempre publicado e ignorando id y tags del JSON")
 	void testCreate() {
-
+		// 1. GIVEN (Dado un escenario inicial)
 		// given: lo que llega del JSON trae id, published=false y un tag
 		Tutorial request = Tutorial.builder()
 				.id(55L)
@@ -153,14 +153,15 @@ class TutorialServiceImplTest {
 				.published(false)
 				.build();
 		request.addTag(Tag.builder().id(7L).name("Java").build());
-
+		// Simulamos el comportamiento del repositorio falso:
 		/* willAnswer devuelve el mismo objeto que recibe save(), como haria el repositorio real */
 		given(tutorialRepository.save(any(Tutorial.class)))
 				.willAnswer(invocation -> invocation.getArgument(0));
 
-		// when
+		// 2. WHEN (Cuando ejecutamos la acción que queremos probar)
 		Tutorial creado = tutorialService.create(request);
-
+		
+		// 3. THEN (Entonces verificamos los resultados)
 		// then: ArgumentCaptor captura el objeto que el servicio paso realmente a save()
 		ArgumentCaptor<Tutorial> captor = ArgumentCaptor.forClass(Tutorial.class);
 		verify(tutorialRepository).save(captor.capture());
